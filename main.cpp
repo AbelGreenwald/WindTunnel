@@ -5,6 +5,9 @@
 #include "PID.h"
 // target X position (teslas) for magnometer
 #define targetX 0
+#define BLUE    "\e[1;34m"
+#define NONE    "\033[0m"
+
 //#define AUTO_MODE 1
 /* Set Pins */
 // power on blinking LED
@@ -14,6 +17,7 @@ PwmOut     enA(D9);
 DigitalOut in1(D8);
 DigitalOut in2(D7);
 
+InterruptIn Switch_1(D4);
 //motor potentiometer
 AnalogIn pot1(A5);
 AnalogIn tmp(A4);
@@ -22,7 +26,23 @@ Servo servo(D3);
 // Timer inturrupt for power LED
 Ticker timer;
 // inductor1 pwm
-PID pidX1(.000825,15,2,.01);
+
+volatile int val1;
+volatile int val2;
+volatile int val3;
+volatile float tmp_val;
+float Kc = 0;
+float tauI =0; 
+float tauD = 0;
+
+bool debounce = false;
+
+char* Kc_color = "\e[1;34m";
+char* tauI_color = "\e[1;34m";
+char* tauD_color = "\e[1;39m";
+unsigned short active_parameter = 1;
+
+PID pidX1(Kc,tauI,tauD,.01);
 //PwmOut      inductor1(PB_3);
 // delta timer for calculations
 Timer timeTimer;
@@ -31,9 +51,6 @@ Serial pc(USBTX, USBRX, 115200);
 // magnometer i2c
 //MAG3110 mag = MAG3110(D14, D15);
 float mag_val, power_val;
-volatile int val1;
-volatile int val2;
-volatile int val3;
 
 //float * magX;
 //const float inductor1[3][3] = [ 0,0,0; 0,1,0; 0,0,1 ];
@@ -60,52 +77,119 @@ void inductor_X1_thread(void const *argument)
     in2 = 0;
     pidX1.setInputLimits(-2000, 400);
     pidX1.setOutputLimits(0.0,1.0);
-    pidX1.setSetPoint(-850.0);
+    pidX1.setSetPoint(-1450.0);
     pidX1.setMode(AUTO_MODE);
     
     while(true)
     {
     pidX1.setProcessValue(val1);
+    pidX1.setTunings(Kc, tauI, tauD);
+    //reverse the direction (in1, in2) here
     power_val = pidX1.compute();
     enA = power_val;
     }
 }
 
+// blink ISR
 void blink() {
     led1 = !led1;
+    //clear button int
+    debounce = false;
+}
+
+// push_event ISR
+void push_event() {
+    //change between K's and change print color
+    //TODO: debounce better
+    if (!debounce)
+    {
+    debounce = true;
+    switch ( active_parameter ) {
+    case 1:
+        Kc_color = "\e[1;39m";
+        tauI_color = "\e[1;34m";
+        tauD_color = "\e[1;39m";
+        Kc = pot1.read() * 10;
+        active_parameter = 2;
+        break;
+    case 2:
+        Kc_color = "\e[1;39m";
+        tauI_color = "\e[1;39m";
+        tauD_color = "\e[1;34m";
+        tauI = pot1.read() * 10;
+        active_parameter = 3;
+        break;
+    case 3:
+        Kc_color = "\e[1;34m";
+        tauI_color = "\e[1;39m";
+        tauD_color = "\e[1;39m";
+        tauD = pot1.read() * 10;
+        active_parameter = 1;
+        break;
+        }
+    }
 }
 
 void mag_reading(void const *argument)
 {
     MAG3110 mag(D14, D15);
-    float tmp_val;
     wait_ms(100);
     mag.enable();
     wait_ms(100);
+
     while(true){
+        if (mag.dataReady() == 255 )
+        {
             val1 = mag.getMagAxis(MAG3110_X_AXIS);
             tmp_val = 100 * tmp.read() * 4.5 - 50;
-            osDelay(50);
-            pc.printf("mag: %4.0i uT, ",val1);
-            pc.printf("tmp: %2.0f C, ",tmp_val);
-            pc.printf("Pwr: %0.5f \r\n",(power_val));
+        }
+    }
+}
+
+void print_data_thread(void const *argument)
+{   
+    osDelay(50);
+    pc.printf("mag (uT),");
+    pc.printf("tmp (C),");
+    pc.printf("Pwr (%%)");
+    pc.printf("\t");
+    pc.printf("Kc,");
+    pc.printf("tauI,");
+    pc.printf("tauD");
+    pc.printf("\r\n");
+    while(true){
+        osDelay(250);
+        pc.printf("%4.0i,",val1);
+        pc.printf("%2.0f,",tmp_val);
+        pc.printf("%0.5f",power_val);
+        pc.printf("\t");
+        pc.printf("%s%f," NONE,Kc_color,Kc);
+        pc.printf("%s%f," NONE,tauI_color,tauI);
+        pc.printf("%s%f" NONE,tauD_color,tauD);
+        pc.printf("\r\n");
     }
 }
 
 osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
+osThreadDef(print_data_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 osThreadDef(inductor_X1_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 
 int main()
 {
+
+    //define some inturrupts
     timer.attach(&blink, .5);
+    Switch_1.rise(&push_event);
+
+    osKernelInitialize (); 
     osThreadCreate(osThread(motor_thread), NULL);
     osThreadCreate(osThread(mag_reading), NULL);
+    osThreadCreate(osThread(print_data_thread), NULL);
     osThreadCreate(osThread(inductor_X1_thread), NULL);
-
-    while (true) {
- //           pc.printf("measurement: %f; mag_reading: %f\r", power_val, *magX);
-            osDelay(50);
-            }
+    osKernelStart ();
+//    while (true) {
+//        osDelay(50);
+//        }
 
 }
