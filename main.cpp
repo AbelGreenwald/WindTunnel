@@ -3,64 +3,50 @@
 #include "cmsis_os.h"
 #include "mag3110.h"
 #include "PID.h"
+
 // target X position (teslas) for magnometer
 #define targetX 0
 #define BLUE    "\e[1;34m"
 #define NONE    "\033[0m"
 
-//#define AUTO_MODE 1
-/* Set Pins */
+/* Set Digital Pins */
 // power on blinking LED
 DigitalOut led1(LED1);
-
-PwmOut     enA(D9);
 DigitalOut in1(D8);
 DigitalOut in2(D7);
 
 InterruptIn Switch_1(D4);
+
+/* Set Analoge Pins */
 //motor potentiometer
 AnalogIn pot1(A5);
 AnalogIn tmp(A4);
-// motor ESC
-Servo servo(D3);
-// Timer inturrupt for power LED
+
+PwmOut enA(D9);
+Servo  servo(D3);
+
+/* Set Other Things*/
 Ticker timer;
-// inductor1 pwm
 
 volatile int val1;
 volatile int val2;
 volatile int val3;
 volatile float tmp_val;
 float Kc = 0;
-float tauI =0; 
+float tauI = 0; 
 float tauD = 0;
-
 bool debounce = false;
-
 char* Kc_color = "\e[1;34m";
 char* tauI_color = "\e[1;34m";
 char* tauD_color = "\e[1;39m";
 unsigned short active_parameter = 1;
 
-PID pidX1(Kc,tauI,tauD,.01);
-//PwmOut      inductor1(PB_3);
-// delta timer for calculations
-Timer timeTimer;
 // state output and debug info
 Serial pc(USBTX, USBRX, 115200);
 // magnometer i2c
+
 //MAG3110 mag = MAG3110(D14, D15);
 float mag_val, power_val;
-
-//float * magX;
-//const float inductor1[3][3] = [ 0,0,0; 0,1,0; 0,0,1 ];
-//const float inductor2[3][3] = [ 0,1,0; 0,0,1; 1,0,0 ];
-//const float inductor3[3][3] = [ 0,0,1; 1,0,0; 0,1,0 ];
-//const float inductor4[3][3] = [ 0,0,1; 1,0,0; 0,1,0 ];
-//const float inductor5[3][3] = [ 0,0,1; 1,0,0; 0,1,0 ];
-//const float inductor6[3][3] = [ 0,0,1; 1,0,0; 0,1,0 ];
-// delta magnometer X
-//float delMagX;
 
 void motor_thread(void const *argument)
 {
@@ -73,6 +59,8 @@ void motor_thread(void const *argument)
 
 void inductor_X1_thread(void const *argument)
 {
+    PID pidX1(Kc,tauI,tauD,.01);
+
     in1 = 1;
     in2 = 0;
     pidX1.setInputLimits(-2000, 400);
@@ -170,6 +158,7 @@ void print_data_thread(void const *argument)
     }
 }
 
+// Define Threads and Priorities to Run
 osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
 osThreadDef(print_data_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
@@ -177,19 +166,16 @@ osThreadDef(inductor_X1_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 
 int main()
 {
-
-    //define some inturrupts
+    // Set blinking LED timer Inturrupt
     timer.attach(&blink, .5);
+    // Set Push Button Event Inturrupt
     Switch_1.rise(&push_event);
 
-    osKernelInitialize (); 
+    osKernelInitialize(); 
     osThreadCreate(osThread(motor_thread), NULL);
     osThreadCreate(osThread(mag_reading), NULL);
     osThreadCreate(osThread(print_data_thread), NULL);
     osThreadCreate(osThread(inductor_X1_thread), NULL);
     osKernelStart ();
-//    while (true) {
-//        osDelay(50);
-//        }
 
 }
