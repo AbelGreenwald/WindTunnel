@@ -1,20 +1,20 @@
 #include "mbed.h"
 #include "Servo.h"
-#include "cmsis_os.h"
+// #include "cmsis_os.h"
 #include "mag3110.h"
 #include "PID.h"
 #include "main.h"
 #include "Inductor.h"
 
-osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
-osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
-osThreadDef(inductor_X1_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
+//osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
+//osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
+//osThreadDef(inductor_X1_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 
 void motor_thread(void const *argument) {
     while (true) {
            // power_val = pot1.read();
             tunnel_motor = power_val;
-            osDelay(50);
+//            osDelay(50);
     }
 }
 
@@ -46,7 +46,7 @@ void mag_reading(void const *argument) {
     while(true){
             val1 = mag.getMagAxis(MAG3110_X_AXIS);
             tmp_val = 100 * inductor_X1_tmp.read() * 4.5 - 50;
-            osDelay(50);
+//            osDelay(50);
             pc.printf("mag: %4.0i uT, ",val1);
             pc.printf("tmp: %2.0f C, ",tmp_val);
             pc.printf("Pwr: %0.5f \r\n",(power_val));
@@ -55,12 +55,12 @@ void mag_reading(void const *argument) {
 
 int main() {
     timer.attach(&blink, .5);
-    osThreadCreate(osThread(motor_thread), NULL);
-    osThreadCreate(osThread(mag_reading), NULL);
-    osThreadCreate(osThread(inductor_X1_thread), NULL);
+//    osThreadCreate(osThread(motor_thread), NULL);
+//    osThreadCreate(osThread(mag_reading), NULL);
+//    osThreadCreate(osThread(inductor_X1_thread), NULL);
 
     while (true) {
-        osDelay(100);
+//        osDelay(100);
     }
 }
 
