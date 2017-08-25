@@ -1,17 +1,21 @@
 #include "mbed.h"
-#include "Inductor.h"
 #include "PID.h"
+#include "Inductor.h"
 
-Inductor::Inductor(PinName in1, PinName in2, PwmOut enA) {
+Inductor::Inductor(PinName in1, PinName in2, PwmOut enA) : PID () {
 
-    float pwr = 0;
-    DigitalOut in1_(in1);
-//    PID pid(Kc, tauI, tauD, interval);
+	DigitalOut in1_(in1);
+	DigitalOut in2_(in2);
+	PwmOut     enA_(enA);
+
+    this->setInputLimits(0.0, 1.0);
+    this->setOutputLimits(0.0, 1.0);
+    this->setTunings(Kc, tauI, tauD);
 }
 
 void Inductor::update( long pVal ) {
 //    pid.setProcessValue( pVal );
-//    pwr = compute();
+    pwr = this->compute();
 
     while(true) {
 //        pid.setProcessValue(val1);

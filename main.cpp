@@ -1,14 +1,14 @@
-#include "mbed.h"
-#include "Servo.h"
-// #include "cmsis_os.h"
-#include "mag3110.h"
-#include "PID.h"
-#include "main.h"
+#include "cmsis_os.h"
 #include "Inductor.h"
+#include "mag3110.h"
+#include "main.h"
+#include "mbed.h"
+#include "PID.h"
+#include "Servo.h"
 
-//osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
-//osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
-//osThreadDef(inductor_X1_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
+osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
+osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
+osThreadDef(inductor_X1_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
 
 void motor_thread(void const *argument) {
     while (true) {
@@ -26,12 +26,6 @@ void motor_thread(void const *argument) {
 // - Input Max
 // - Set Point
 void inductor_X1_thread(void const *argument) {
-
-//    inductor_X1_pid.setInputLimits(-3250, 200);
-//    inductor_X1_pid.setOutputLimits(-1,1);
-//    inductor_X1_pid.setSetPoint(-2000);
-//    inductor_X1_pid.setMode(AUTO_MODE);
-//Inductor X_l(inductor_X1_in1, inductor_X1_in2, inductor_X1_enA)
 
 Inductor X_l(D8, D9, inductor_X_l_enA);
 
@@ -55,12 +49,12 @@ void mag_reading(void const *argument) {
 
 int main() {
     timer.attach(&blink, .5);
-//    osThreadCreate(osThread(motor_thread), NULL);
-//    osThreadCreate(osThread(mag_reading), NULL);
-//    osThreadCreate(osThread(inductor_X1_thread), NULL);
+    osThreadCreate(osThread(motor_thread), NULL);
+    osThreadCreate(osThread(mag_reading), NULL);
+    osThreadCreate(osThread(inductor_X1_thread), NULL);
 
     while (true) {
-//        osDelay(100);
+        osDelay(100);
     }
 }
 

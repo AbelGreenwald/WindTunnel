@@ -78,6 +78,7 @@ public:
      */
     PID(float Kc, float tauI, float tauD, float interval);
 
+    PID();
     /**
      * Scale from inputs to 0-100%.
      *
