@@ -49,20 +49,6 @@
  */
 #include "PID.h"
 
-PID::PID() {
-    usingFeedForward      = false;
-    inAuto                = false;
-    tSample_              = 0.0;
-    setPoint_             = 0.0;
-    processVariable_      = 0.0;
-    prevProcessVariable_  = 0.0;
-    controllerOutput_     = 0.0;
-    prevControllerOutput_ = 0.0;
-    accError_             = 0.0;
-    bias_                 = 0.0;
-    realOutput_           = 0.0;
-}
-
 PID::PID(float Kc, float tauI, float tauD, float interval) {
 
     usingFeedForward = false;
@@ -89,6 +75,10 @@ PID::PID(float Kc, float tauI, float tauD, float interval) {
     
     realOutput_ = 0.0;
 
+}
+
+PID::PID() {
+    
 }
 
 void PID::setInputLimits(float inMin, float inMax) {

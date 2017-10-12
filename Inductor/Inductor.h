@@ -4,18 +4,19 @@
 #ifndef Inductor_H
 #define Inductor_H
 
-class Inductor : public PID {
-
+class Inductor : public PID, PwmOut, DigitalOut {
 public:
-	Inductor(PinName in1, PinName in2, PwmOut enA);
-	void update( long pVal );
-
+	Inductor(PinName enA, PinName in);
+	void Initialize();
+	void update();
+	void setPolarity(bool pol);
+	bool getPolarity();
+	void setProtection(bool protect);
+	bool getProtection();
+	void setPower(float pwr);
+	float getPower();
 protected:
-	float pwr;
-	float Kc, tauI, tauD, interval;
-	DigitalOut in1_();
-	DigitalOut in2_();
-	PwmOut     enA_();
+    bool protection_, polarity_, power_;
 };
 
 #endif

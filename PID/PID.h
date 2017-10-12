@@ -66,6 +66,11 @@ class PID {
 public:
 
     /**
+     * A Default Constructor.
+     */
+    PID();
+
+    /**
      * Constructor.
      *
      * Sets default limits [0-3.3V], calculates tuning parameters, and sets
@@ -78,7 +83,6 @@ public:
      */
     PID(float Kc, float tauI, float tauD, float interval);
 
-    PID();
     /**
      * Scale from inputs to 0-100%.
      *
@@ -165,7 +169,7 @@ public:
     float getIParam();
     float getDParam();
 
-private:
+protected:
 
     bool usingFeedForward;
     bool inAuto;

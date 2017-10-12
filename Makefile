@@ -46,8 +46,8 @@ PROJECT := WindTunnel_RTOS
 # Objects and Paths
 
 OBJECTS += main.o
+OBJECTS += ak8963/ak8963.o
 OBJECTS += Inductor/Inductor.o
-OBJECTS += mag3110/mag3110.o
 OBJECTS += PID/PID.o
 OBJECTS += Servo/Servo.o
 OBJECTS += mbed-rtos/rtos/Mutex.o
@@ -172,11 +172,10 @@ SYS_OBJECTS += mbed/TARGET_NUCLEO_F446RE/TOOLCHAIN_GCC_ARM/us_ticker_16b.o
 SYS_OBJECTS += mbed/TARGET_NUCLEO_F446RE/TOOLCHAIN_GCC_ARM/us_ticker_32b.o
 
 INCLUDE_PATHS += -I../
-INCLUDE_PATHS += -I../.
 INCLUDE_PATHS += -I../PID
 INCLUDE_PATHS += -I../Inductor
 INCLUDE_PATHS += -I../Servo
-INCLUDE_PATHS += -I../mag3110
+INCLUDE_PATHS += -I../ak8963
 INCLUDE_PATHS += -I../mbed-rtos
 INCLUDE_PATHS += -I../mbed-rtos/rtos
 INCLUDE_PATHS += -I../mbed-rtos/rtx
