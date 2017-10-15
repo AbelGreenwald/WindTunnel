@@ -23,16 +23,16 @@
 #define inductor_Z_enA    PC_9
 
 /* Define Calibration Settings */
-#define inductor_Z_input_min 0
-#define inductor_Z_input_max 300
-#define inductor_Z_set_point 30
-#define inductor_Z_output_min 0.0
-#define inductor_Z_output_max 1.0
-
+#define inductor_Z_input_min 340
+#define inductor_Z_input_max 2500
+#define inductor_Z_set_point 500
+#define inductor_Z_output_min 1.0
+#define inductor_Z_output_max -1.0
+#define inductor_Z_timestep .01
 //should come from rlocus
-#define inductor_Z_Kc .25
-#define inductor_Z_Kd 10
-#define inductor_Z_Ki 0
+#define inductor_Z_Kc 1.0
+#define inductor_Z_Kd 0.0
+#define inductor_Z_Ki 0.0
 
 
 #define inductor_MZ_l_in1 NaN
@@ -73,8 +73,8 @@ void Inductors(void const*);
 void mag_reading(void const*);
 
 /* Threads  */
-osThreadDef(motor_thread, osPriorityNormal, DEFAULT_STACK_SIZE);
+osThreadDef(motor_thread, osPriorityLow, 1024);
 osThreadDef(mag_reading, osPriorityNormal, DEFAULT_STACK_SIZE);
-osThreadDef(Inductors, osPriorityNormal, DEFAULT_STACK_SIZE);
+osThreadDef(Inductors, osPriorityNormal, 4096); //4K stack
 
 #endif

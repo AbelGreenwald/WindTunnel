@@ -7,10 +7,8 @@
 #include "Servo.h"
 
 
-int Z_pv;
-float z_power = 0;
+volatile float z_power, Z_pv;
 I2C i2c_1(PB_9, PB_8);
-bool mutex;
 
 void motor_thread(void const *argument) {
     while (true) {
@@ -27,34 +25,38 @@ void Inductors(void const *argument) {
 
     //Z Direction Inductor Settings
     Inductor inductor_Z(inductor_Z_enA, inductor_Z_in1);
-
+    
     inductor_Z.setInputLimits(inductor_Z_input_min, inductor_Z_input_max);
-//    inductor_Z.setInputLimits(-60, 160);
-
     inductor_Z.setOutputLimits(inductor_Z_output_min, inductor_Z_output_max);
-//    make this -1 to 1 and change polarity accordingly
-//    inductor_Z.setOutputLimits(0.0, 1.0);
-
     inductor_Z.setTunings(inductor_Z_Kc,inductor_Z_Kd,inductor_Z_Ki);
-//    inductor_Z.setTunings(0.001,1,0);
-
     inductor_Z.setMode(AUTO_MODE);
-
-    inductor_Z.setInterval(.1);
-
+    inductor_Z.setInterval(inductor_Z_timestep);
     inductor_Z.setSetPoint(inductor_Z_set_point);
-
 
     //temporary
     inductor_Z.setPolarity(1);
 
-
     while (true) {
         inductor_Z.setProcessValue(Z_pv);
         z_power = inductor_Z.compute();
-        //this should be a 100hz IRQ
         inductor_Z.setPower(z_power);
-        osDelay(8);
+/*
+        if (z_power >= 0.0) {
+            //normal polarity
+            in2 = 0;
+            inductor_Z.setPolarity(1);
+            inductor_Z.setPower(z_power);
+        }
+        if (z_power < 0.0) {
+            z_power = -(z_power);
+            //flip polarity
+            in2 = 1;
+            inductor_Z.setPolarity(0);
+            inductor_Z.setPower(z_power);
+        }
+*/
+//        pc.printf("%f\t%f\r\n", z_power, Z_pv );
+//        osDelay(1);
     }
 
 }
@@ -88,9 +90,9 @@ void mag_reading(void const *argument) {
             AK8963::MagneticVector mag;
             ak8963.getMagneticVector(&mag);
             Z_pv = mag.mz;
-            pc.printf("%f\r\n", mag.mz);
-
             osDelay(10);
+            //TODO: if mag overflow, hold at max
+
 //            pc.printf("R");
 //            osDelay(10);
         } else if (ak8963.isDataReady() == AK8963::NOT_DATA_READY) {
