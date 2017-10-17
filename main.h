@@ -23,16 +23,16 @@
 #define inductor_Z_enA    PC_9
 
 /* Define Calibration Settings */
-#define inductor_Z_input_min 340
-#define inductor_Z_input_max 2500
-#define inductor_Z_set_point 500
-#define inductor_Z_output_min 1.0
-#define inductor_Z_output_max -1.0
-#define inductor_Z_timestep .01
+#define inductor_Z_input_min 100.0
+#define inductor_Z_input_max 1500.0
+#define inductor_Z_set_point 400.0
+#define inductor_Z_output_min -1.0
+#define inductor_Z_output_max 1.0
+#define inductor_Z_timestep .1
 //should come from rlocus
-#define inductor_Z_Kc 1.0
-#define inductor_Z_Kd 0.0
-#define inductor_Z_Ki 0.0
+#define inductor_Z_Kc 1
+#define inductor_Z_Kd 1
+#define inductor_Z_Ki 1
 
 
 #define inductor_MZ_l_in1 NaN
@@ -60,6 +60,7 @@ DigitalOut led1(LED1);
 //Servo tunnel_motor(D3);
 // Timer inturrupt for power LED
 Ticker timer;
+Ticker ms;
 // state output and debug info
 Serial pc(USBTX, USBRX, 115200);
 //I2c Channel 1 definition
@@ -68,6 +69,7 @@ Serial pc(USBTX, USBRX, 115200);
 /* Function Prototypes  */
 
 void active_blink(void);
+void count_ms(void);
 void motor_thread(void const*);
 void Inductors(void const*);
 void mag_reading(void const*);
